@@ -553,3 +553,7 @@ bool BencodeParser::parse(torrent_data* content) {
 	infoStart=0;
 	return getDictionary(&dictionaryValue, this->content->data);
 }
+
+std::map<std::string, void*> BencodeParser::dictionary(){
+	return dictionaryValue;
+}

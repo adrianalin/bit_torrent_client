@@ -162,6 +162,8 @@ public:
 
 	bool parse(torrent_data* content);
 
+	std::map<std::string, void*> dictionary();
+
 private:
 	torrent_data* content;
 	int index;

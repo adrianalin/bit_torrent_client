@@ -3,7 +3,7 @@ using namespace std;
 
 #include <string.h>
 #include <stdio.h>
-#include "BencodeParser.h"
+#include "MetaInfo.h"
 
 torrent_data* readFile(char* name, size_t num){
 	char fileName[50];
@@ -62,10 +62,10 @@ torrent_data* readFile(char* name, size_t num){
 
 int main()
 {
-	BencodeParser bp;
+	MetaInfo mi;
 	torrent_data* torrentData;
 	torrentData=readFile((char*)"debian-7.4.0-i386-CD-1.iso.torrent", strlen("debian-7.4.0-i386-CD-1.iso.torrent")); //"debian-7.4.0-i386-CD-1.iso.torrent"
 	cout<<"torrent data = "<<torrentData->data<<std::endl;
-	bp.parse(torrentData);
+	mi.parse(torrentData);
 	return 0;
 }

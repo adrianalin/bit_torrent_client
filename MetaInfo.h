@@ -11,20 +11,21 @@
 #include <list>
 #include <string>
 #include <ctime>
+#include "BencodeParser.h"
 
 struct MetaInfoSingleFile
 {
     long long length;
-    unsigned char md5sum;
+    const char* md5sum;
     std::string name;
     int pieceLength;
-    std::list<unsigned char> sha1Sums; //QList<QByteArray> sha1Sums;
+    std::list<const char* > sha1Sums; //QList<QByteArray> sha1Sums;
 };
 
 struct MetaInfoMultiFile
 {
     long long length;
-    unsigned char md5sum;
+    char md5sum;
     std::string path;
 };
 
@@ -38,18 +39,15 @@ public:
 		MultiFileForm
 	};
 
-	bool parse(unsigned char* data);
+	bool parse(torrent_data* content);
 
 private:
 	void clear();
 
-    std::string errString;
-    unsigned char content[10];
-    unsigned char infoData[10];
-
     FileForm metaInfoFileForm;
     MetaInfoSingleFile metaInfoSingleFile;
     std::list<MetaInfoMultiFile> metaInfoMultiFiles;
+    std::list<std::string> metaInfoHTTPseeds;
     std::string metaInfoAnnounce;
     std::list<std::string> metaInfoAnnounceList;
     struct tm metaInfoCreationDate;
@@ -57,7 +55,7 @@ private:
     std::string metaInfoCreatedBy;
     std::string metaInfoName;
     int metaInfoPieceLength;
-    std::list<unsigned char> metaInfoSha1Sums; //QList<QByteArray> metaInfoSha1Sums;
+    std::list<char*> metaInfoSha1Sums; //QList<QByteArray> metaInfoSha1Sums;
 };
 
 #endif /* METAINFO_H_ */
