@@ -13,11 +13,6 @@
 #include <map>
 #include <list>
 
-typedef struct{
-	char* data;
-	int size;
-} torrent_data;
-
 typedef struct
 {
 	const char *str;

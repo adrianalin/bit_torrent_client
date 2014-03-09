@@ -6,12 +6,20 @@
  */
 
 #include <string>
+#include "TorrentClientPrivate.h"
 
 
 #ifndef TORRENTCLIENT_H_
 #define TORRENTCLIENT_H_
 
+typedef struct{
+	char* data;
+	int size;
+} torrent_data;
+
 class TorrentClient {
+private:
+	TorrentClientPrivate* d;
 public:
 	enum State {
 		Idle,
@@ -36,7 +44,8 @@ public:
 	TorrentClient();
 	virtual ~TorrentClient();
 
-	bool setTorrent(char *fileName);
+	bool setTorrent(char* fileName, size_t num);
+	bool setTorrent(torrent_data* torrent);
 };
 
 #endif /* TORRENTCLIENT_H_ */
