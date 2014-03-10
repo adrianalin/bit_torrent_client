@@ -6,6 +6,7 @@
  */
 
 #include "MetaInfo.h"
+#include "BencodeParser.h"
 
 using namespace std;
 
@@ -30,12 +31,12 @@ void MetaInfo::clear() {
 //	metaInfoHTTPseeds.clear();
 }
 
-bool MetaInfo::parse(torrent_data* content) {
+bool MetaInfo::parse(string& content) {
 	clear();
 
 	bencode_t ben, ben2;
 	BencodeParser parser;
-	parser.bencode_init(&ben, content->data, content->size);
+    parser.bencode_init(&ben, content.c_str(), (int)content.length());
 	const char* buf;
 	long int number;
 	int len;
@@ -55,10 +56,9 @@ bool MetaInfo::parse(torrent_data* content) {
 		std::string key(buf, len);
 
 		if(key == "announce"){
-			parser.bencode_string_value(&ben2, &buf, &len);
-			std::string str(buf, len);
-			metaInfoAnnounce = str;
-			std::cout<<key<<"="<<metaInfoAnnounce<<std::endl;
+            parser.bencode_string_value(&ben2, &buf, &len);
+            metaInfoAnnounce= string(buf, len);
+            std::cout<<key<<"="<<metaInfoAnnounce<<std::endl;
 		} else if(key == "comment"){
 			parser.bencode_string_value(&ben2, &buf, &len);
 			metaInfoComment = string(buf, len);
@@ -118,7 +118,7 @@ bool MetaInfo::parse(torrent_data* content) {
 						parser.bencode_string_value(&ben3, &buf, &len);
 						const char* sha1Data=string(buf, len).c_str();
 						for(int i=0; i<len; i+=20){
-							char* sha1Sum= (char*)malloc(20);
+                            char* sha1Sum= (char*)malloc(20);
 							memcpy(sha1Sum, sha1Data, 20);
 							std::cout<<sha1Sum<<std::endl;
 							metaInfoSingleFile.sha1Sums.push_back(sha1Sum);

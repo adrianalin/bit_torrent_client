@@ -12,14 +12,10 @@
 
 class TorrentClientPrivate;
 
-typedef struct{
-	char* data;
-	int size;
-} torrent_data;
-
 class TorrentClient {
 private:
-	TorrentClientPrivate* d;
+    TorrentClientPrivate* d;
+    std::string torrentFile;
 public:
 	enum State {
 		Idle,
@@ -44,8 +40,8 @@ public:
 	TorrentClient();
 	virtual ~TorrentClient();
 
-	bool setTorrent(char* fileName, size_t num);
-	bool setTorrent(torrent_data* torrent);
+    bool setTorrent(char* fileName);
+    bool setTorrent();
 };
 
 #endif /* TORRENTCLIENT_H_ */

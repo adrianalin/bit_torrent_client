@@ -31,19 +31,18 @@ struct MetaInfoMultiFile
 
 class MetaInfo {
 public:
-	MetaInfo();
-	virtual ~MetaInfo();
+    MetaInfo();
+    virtual ~MetaInfo();
 
-	enum FileForm {
-		SingleFileForm,
-		MultiFileForm
-	};
+    enum FileForm {
+        SingleFileForm,
+        MultiFileForm
+    };
 
-	bool parse(torrent_data* content);
+    bool parse(std::string &content);
 
 private:
-	void clear();
-
+    void clear();
     FileForm metaInfoFileForm;
     MetaInfoSingleFile metaInfoSingleFile;
     std::list<MetaInfoMultiFile> metaInfoMultiFiles;

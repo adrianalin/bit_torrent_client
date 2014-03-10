@@ -10,8 +10,6 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include <map>
-#include <list>
 #include "TorrentClient.h"
 
 typedef struct
@@ -151,21 +149,6 @@ public:
 			const char **start,
 			int *len
 	);
-
-	bool getDictionary(std::map<std::string, void*>* dictionary, const char* content);
-
-	bool getList(std::list<void*>* tempList, const char* content);
-
-	bool parse(torrent_data* content);
-
-	std::map<std::string, void*> dictionary();
-
-private:
-	torrent_data* content;
-	int index;
-	int infoStart;
-	int infoLength;
-	std::map<std::string, void*> dictionaryValue;
 };
 
 #endif /* BENCODEPARSER_H_ */
