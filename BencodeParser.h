@@ -12,6 +12,7 @@
 #include <iostream>
 #include <map>
 #include <list>
+#include "TorrentClient.h"
 
 typedef struct
 {

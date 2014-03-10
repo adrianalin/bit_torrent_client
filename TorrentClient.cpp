@@ -6,7 +6,59 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "TorrentClient.h"
+#include "MetaInfo.h"
+
+class TorrentClientPrivate {
+public:
+	TorrentClient::Error error;
+	TorrentClient::State state;
+	std::string errorString;
+	std::string stateString;
+
+	void setError(TorrentClient::Error errorCode);
+	TorrentClientPrivate();
+	virtual ~TorrentClientPrivate();
+
+	// Where to save data
+	std::string destinationFolder;
+	MetaInfo metaInfo;
+};
+
+TorrentClientPrivate::TorrentClientPrivate() {
+	// TODO Auto-generated constructor stub
+
+}
+
+TorrentClientPrivate::~TorrentClientPrivate() {
+	// TODO Auto-generated destructor stub
+}
+
+void TorrentClientPrivate::setError(TorrentClient::Error errorCode)
+{
+	this->error = errorCode;
+	switch (error) {
+	case TorrentClient::UnknownError:
+		errorString = "Unknown error";
+		break;
+	case TorrentClient::TorrentParseError:
+		errorString = "Invalid torrent data";
+		break;
+	case TorrentClient::InvalidTrackerError:
+		errorString = "Unable to connect to tracker";
+		break;
+	case TorrentClient::FileError:
+		errorString = "File error";
+		break;
+	case TorrentClient::ServerError:
+		errorString = "Unable to initialize server";
+		break;
+	}
+	std::cout<<"error = "<<errorString<<std::endl;
+}
+
+/******************************************************************************************************************/
 
 TorrentClient::TorrentClient() {
 	// TODO Auto-generated constructor stub
@@ -76,5 +128,10 @@ bool TorrentClient::setTorrent(char* name, size_t num)
 }
 
 bool TorrentClient::setTorrent(torrent_data* torrent) {
-	if(!d->metaInfo.parse(torrent))
+	if(!d->metaInfo.parse(torrent)){
+		d->setError(TorrentParseError);
+		return false;
+	}
+
+	return true;
 }

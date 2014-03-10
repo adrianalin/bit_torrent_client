@@ -9,7 +9,7 @@
 #define METAINFO_H_
 
 #include <list>
-#include <string>
+#include <string.h>
 #include <ctime>
 #include "BencodeParser.h"
 

@@ -5,12 +5,12 @@
  *      Author: adrian
  */
 
-#include <string>
-#include "TorrentClientPrivate.h"
-
-
 #ifndef TORRENTCLIENT_H_
 #define TORRENTCLIENT_H_
+
+#include <string>
+
+class TorrentClientPrivate;
 
 typedef struct{
 	char* data;
