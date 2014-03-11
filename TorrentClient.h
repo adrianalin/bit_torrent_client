@@ -9,13 +9,37 @@
 #define TORRENTCLIENT_H_
 
 #include <string>
+#include "MetaInfo.h"
 
 class TorrentClientPrivate;
+class TorrentPeer;
+class MetaInfo;
+
+class TorrentPeer {
+public:
+	std::string address;
+	int port;
+	std::string id;
+	bool interesting;
+	bool seed;
+	unsigned int lastVisited;
+	unsigned int connectStart;
+	unsigned int connectTime;
+	std::string pieces;
+	int numCompletedPieces;
+
+	inline bool operator==(const TorrentPeer &other)
+    		{
+		return port == other.port
+				&& address == other.address
+				&& id == other.id;
+    		}
+};
 
 class TorrentClient {
 private:
-    TorrentClientPrivate* d;
-    std::string torrentFile;
+	TorrentClientPrivate* d;
+	std::string torrentFile;
 public:
 	enum State {
 		Idle,
@@ -40,8 +64,38 @@ public:
 	TorrentClient();
 	virtual ~TorrentClient();
 
-    bool setTorrent(char* fileName);
-    bool setTorrent();
+	bool setTorrent(char* fileName);
+	bool setTorrent();
+	MetaInfo metaInfo() const;
+
+	void setMaxConnections(int connections);
+	int maxConnections() const;
+
+	void setDestinationFolder(const std::string &directory);
+	std::string destinationFolder() const;
+
+	void setDumpedState(const std::string &dumpedState);
+	std::string dumpedState() const;
+
+	// Progress and stats for download feedback.
+	long long progress() const;
+	void setDownloadedBytes(long long bytes);
+	long long downloadedBytes() const;
+	void setUploadedBytes(long long bytes);
+	long long uploadedBytes() const;
+	int connectedPeerCount() const;
+	int seedCount() const;
+
+	// Accessors for the tracker
+	std::string peerId() const;
+	std::string infoHash() const;
+	int serverPort() const;
+
+	// State and error.
+	TorrentClient::State state() const;
+	std::string stateString() const;
+	TorrentClient::Error error() const;
+	std::string errorString() const;
 };
 
 #endif /* TORRENTCLIENT_H_ */
