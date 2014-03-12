@@ -10,6 +10,15 @@
 
 using namespace std;
 
+int numberOfDigits(int num){
+	int nd=0;
+	while(num!=0){
+		nd=nd+1;
+		num=num/10;
+	}
+	return nd;
+}
+
 MetaInfo::MetaInfo() {
 	// TODO Auto-generated constructor stub
 	clear();
@@ -138,9 +147,9 @@ bool MetaInfo::parse(string& content) {
 					metaInfoHTTPseeds.push_back(val);
 				}
 			}
-		} else if(key == "info") { //warning! maybe info is not the last dictionary
+		} else if(key == "info") { //get info section
 			std::cout<<key<<std::endl;
-			int infoSectionLength=0;
+			int infoSectionLength=strlen("d6");
 			infoData = string(ben2.str, ben2.len);
 			if(parser.bencode_is_dict(&ben2)){
 				metaInfoFileForm = SingleFileForm;
@@ -152,28 +161,33 @@ bool MetaInfo::parse(string& content) {
 					}
 
 					std::string key(buf, len);
-					infoSectionLength = infoSectionLength+len;
+					infoSectionLength = infoSectionLength+len+1;
 					if(key == "files"){
 						metaInfoFileForm = MultiFileForm;
 					} else if(key=="length"){
 						parser.bencode_int_value(&ben3, &number);
+						infoSectionLength = infoSectionLength + numberOfDigits(number) + 2;
 						metaInfoSingleFile.length = number;
 						std::cout<<key<<"="<<number<<std::endl;
 					} else if(key=="name"){
 						parser.bencode_string_value(&ben3, &buf, &len);
+						infoSectionLength = infoSectionLength+len+numberOfDigits(len)+1;
 						metaInfoSingleFile.name=string(buf, len);
 						std::cout<<key<<"="<<metaInfoSingleFile.name<<std::endl;
 					} else if(key=="piece length"){
 						parser.bencode_int_value(&ben3, &number);
+						infoSectionLength = infoSectionLength + numberOfDigits(number)+2;
 						metaInfoSingleFile.pieceLength=number;
 						std::cout<<key<<"="<<metaInfoSingleFile.pieceLength<<std::endl;
 					} else if(key=="md5sum"){
 						parser.bencode_string_value(&ben3, &buf, &len);
+						infoSectionLength = infoSectionLength+len+numberOfDigits(len)+1;
 						metaInfoSingleFile.md5sum = string(buf, len).c_str();
 						std::cout<<key<<"="<<metaInfoSingleFile.md5sum<<std::endl;
 					} else if(key=="pieces"){
 						std::cout<<key<<std::endl;
 						parser.bencode_string_value(&ben3, &buf, &len);
+						infoSectionLength = infoSectionLength+len+numberOfDigits(len)+1;
 						const char* sha1Data=string(buf, len).c_str();
 						for(int i=0; i<len; i+=20){
 							char* sha1Sum= (char*)malloc(20);
@@ -185,6 +199,7 @@ bool MetaInfo::parse(string& content) {
 					}
 				}
 			}
+			std::cout<<"infoSectionLength = "<<infoSectionLength<<std::endl;
 		}
 	}
 	return true;
