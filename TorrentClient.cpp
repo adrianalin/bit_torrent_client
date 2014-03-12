@@ -207,9 +207,11 @@ bool TorrentClient::setTorrent() {
 		return false;
 	}
 	std::string infoValue=d->metaInfo.infoValue();
+	const char* infoString=d->metaInfo.infoValue().c_str();
+	int length = d->metaInfo.infoValue().length();
 	unsigned char result[20];
 	memset(result, 0, sizeof(result));
-	sha1::calc((void*)"test", strlen("test"), result);
+	sha1::calc((void*)d->metaInfo.infoValue().c_str(), d->metaInfo.infoValue().length(), result);
 
 	return true;
 }
