@@ -58,11 +58,11 @@ public:
 	std::string peerId;
 	std::string infoHash;
 	TrackerClient trackerClient;
-//	FileManager fileManager;	toDo!!
+	//	FileManager fileManager;	toDo!!
 
 	// Connections
-//	QList<PeerWireClient *> connections; toDo
-//	QList<TorrentPeer *> peers; toDo!!
+	//	QList<PeerWireClient *> connections; toDo
+	//	QList<TorrentPeer *> peers; toDo!!
 	bool schedulerCalled;
 	void callScheduler();
 	bool connectingToClients;
@@ -70,8 +70,8 @@ public:
 	int uploadScheduleTimer;
 
 	// Pieces
-//	QMap<int, PeerWireClient *> readIds;
-//	QMultiMap<PeerWireClient *, TorrentPiece *> payloads;
+	//	QMap<int, PeerWireClient *> readIds;
+	//	QMultiMap<PeerWireClient *, TorrentPiece *> payloads;
 	std::map<int, TorrentPiece *> pendingPieces;
 	std::string completedPieces;
 	std::string incompletePieces;
@@ -206,12 +206,10 @@ bool TorrentClient::setTorrent() {
 		d->setError(TorrentParseError);
 		return false;
 	}
-	std::string infoValue=d->metaInfo.infoValue();
-	const char* infoString=d->metaInfo.infoValue().c_str();
-	int length = d->metaInfo.infoValue().length();
 	unsigned char result[20];
 	memset(result, 0, sizeof(result));
 	sha1::calc((void*)d->metaInfo.infoValue().c_str(), d->metaInfo.infoValue().length(), result);
+	d->infoHash = std::string(result, sizeof(result));
 
 	return true;
 }
@@ -275,4 +273,48 @@ TorrentClient::Error TorrentClient::error() const {
 }
 
 std::string TorrentClient::errorString() const {
+}
+
+void TorrentClient::fullVerificationDone() {
+//	// Update our list of completed and incomplete pieces.
+//	d->completedPieces = d->fileManager.completedPieces();
+//	d->incompletePieces.resize(d->completedPieces.size());
+//	d->pieceCount = d->completedPieces.size();
+//	for (int i = 0; i < d->fileManager.pieceCount(); ++i) {
+//		if (!d->completedPieces.testBit(i))
+//			d->incompletePieces.setBit(i);
+//	}
+//
+//	updateProgress();
+//
+//	// If the checksums show that what the dumped state thought was
+//	// partial was in fact complete, then we trust the checksums.
+//	QMap<int, TorrentPiece *>::Iterator it = d->pendingPieces.begin();
+//	while (it != d->pendingPieces.end()) {
+//		if (d->completedPieces.testBit(it.key()))
+//			it = d->pendingPieces.erase(it);
+//		else
+//			++it;
+//	}
+//
+//	d->uploadScheduleTimer = startTimer(UploadScheduleInterval);
+//
+//	// Start the server
+//	TorrentServer *server = TorrentServer::instance();
+//	if (!server->isListening()) {
+//		// Set up the peer wire server
+//		for (int i = ServerMinPort; i <= ServerMaxPort; ++i) {
+//			if (server->listen(QHostAddress::Any, i))
+//				break;
+//		}
+//		if (!server->isListening()) {
+//			d->setError(ServerError);
+//			return;
+//		}
+//	}
+//
+//	d->setState(d->completedPieces.count(true) == d->pieceCount ? Seeding : Searching);
+
+	// Start the tracker client
+	d->trackerClient.start(d->metaInfo);
 }

@@ -39,7 +39,7 @@ protected:
 //	void httpRequestDone(QNetworkReply *reply);
 //	void provideAuthentication(QNetworkReply *reply, QAuthenticator *auth);
 
-	private:
+private:
 	TorrentClient *torrentDownloader;
 
 	int requestInterval;

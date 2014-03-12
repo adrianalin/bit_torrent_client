@@ -149,7 +149,7 @@ bool MetaInfo::parse(string& content) {
 			}
 		} else if(key == "info") { //get info section
 			std::cout<<key<<std::endl;
-			int infoSectionLength=strlen("d6");
+			int infoSectionLength=strlen("d");
 			infoData = string(ben2.str, ben2.len);
 			if(parser.bencode_is_dict(&ben2)){
 				metaInfoFileForm = SingleFileForm;
@@ -161,7 +161,7 @@ bool MetaInfo::parse(string& content) {
 					}
 
 					std::string key(buf, len);
-					infoSectionLength = infoSectionLength+len+1;
+					infoSectionLength = infoSectionLength+numberOfDigits(len)+len+1;
 					if(key == "files"){
 						metaInfoFileForm = MultiFileForm;
 					} else if(key=="length"){
@@ -199,6 +199,8 @@ bool MetaInfo::parse(string& content) {
 					}
 				}
 			}
+			infoSectionLength = infoSectionLength+1;
+			infoData = string(infoData.c_str(), infoSectionLength);
 			std::cout<<"infoSectionLength = "<<infoSectionLength<<std::endl;
 		}
 	}

@@ -40,6 +40,7 @@ class TorrentClient {
 private:
 	TorrentClientPrivate* d;
 	std::string torrentFile;
+	void fullVerificationDone();
 public:
 	enum State {
 		Idle,
