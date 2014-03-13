@@ -209,7 +209,7 @@ bool TorrentClient::setTorrent() {
 	unsigned char result[20];
 	memset(result, 0, sizeof(result));
 	sha1::calc((void*)d->metaInfo.infoValue().c_str(), d->metaInfo.infoValue().length(), result);
-	d->infoHash = std::string(result, sizeof(result));
+	d->infoHash = std::string((const char*)result, sizeof(result));
 
 	return true;
 }
@@ -257,7 +257,7 @@ std::string TorrentClient::peerId() const {
 }
 
 std::string TorrentClient::infoHash() const {
-	d->infoHash;
+	return d->infoHash;
 }
 
 int TorrentClient::serverPort() const {
@@ -317,4 +317,9 @@ void TorrentClient::fullVerificationDone() {
 
 	// Start the tracker client
 	d->trackerClient.start(d->metaInfo);
+}
+
+
+void TorrentClient::start(){
+	fullVerificationDone();
 }

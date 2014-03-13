@@ -97,6 +97,8 @@ public:
 	std::string stateString() const;
 	TorrentClient::Error error() const;
 	std::string errorString() const;
+
+	void start();
 };
 
 #endif /* TORRENTCLIENT_H_ */
