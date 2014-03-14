@@ -100,5 +100,5 @@ void TrackerClient::fetchPeerList() {
 }
 
 void TrackerClient::httpRequestDone(const happyhttp::Response* r, void* userData) {
-	std::cout<<"COMPLETE m_BytesRead="<<r->m_BytesRead<<endl;
+	std::cout<<"COMPLETE m_BytesRead="<<r->m_BytesRead<<std::endl;
 }
