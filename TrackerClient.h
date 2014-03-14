@@ -9,6 +9,7 @@
 #define TRACKERCLIENT_H_
 
 #include "TorrentClient.h"
+#include "happyhttp.h"
 
 class TrackerClient {
 public:
@@ -32,11 +33,7 @@ public:
 //	void stopped();
 
 protected:
-//	void timerEvent(QTimerEvent *event);
-
-//	private slots:
 	void fetchPeerList();
-	void httpRequestDone(const happyhttp::Response* r, void* userData);
 //	void provideAuthentication(QNetworkReply *reply, QAuthenticator *auth);
 
 private:

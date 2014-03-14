@@ -8,6 +8,8 @@
 #include "TrackerClient.h"
 #include "happyhttp.h"
 
+#include <ws2tcpip.h>
+
 #include <cctype>
 #include <iomanip>
 #include <sstream>
@@ -89,16 +91,86 @@ void TrackerClient::stop() {
 void TrackerClient::startSeeding() {
 }
 
-void TrackerClient::fetchPeerList() {
-	happyhttp::Connection conn(torrentDownloader->metaInfo().announceUrl(), 80);
+void httpRequestOnBegin(const happyhttp::Response* r, void* userdata) {
+	printf( "BEGIN (%d %s)\n", r->getstatus(), r->getreason() );
+}
 
+void httpRequestOnData(const happyhttp::Response* r, void* userdata, const unsigned char* data, int n) {
+	fwrite(data, 1, n, stdout);
+}
+
+void httpRequestOnDone(const happyhttp::Response* r, void* userData) {
+	std::cout<<"finished request"<<std::endl;
+}
+
+void TrackerClient::fetchPeerList() {
+#ifdef WIN32
+	WSAData wsaData;
+	int code = WSAStartup(MAKEWORD(1, 1), &wsaData);
+	if( code != 0 )
+	{
+		fprintf(stderr, "shite. %d\n",code);
+		return ;
+	}
+#endif //WIN32
 	// Percent encode the hash
 	std::string infoHash = torrentDownloader->infoHash();
 	std::string encodedSum = urlencode(infoHash);
 
 	bool seeding = (torrentDownloader->state() == TorrentClient::Seeding);
-}
 
-void TrackerClient::httpRequestDone(const happyhttp::Response* r, void* userData) {
-	std::cout<<"COMPLETE m_BytesRead="<<r->m_BytesRead<<std::endl;
+	try
+	{
+		const char* headers[5];
+		happyhttp::Connection conn(torrentDownloader->metaInfo().announceUrl().c_str(), 80);
+		conn.setcallbacks(httpRequestOnBegin, httpRequestOnData, httpRequestOnDone, 0);
+
+		headers[0]="info_hash";
+		headers[1]=encodedSum.c_str();
+
+		//		conn.putheader("info_hash", encodedSum.c_str());
+		//		conn.putheader("peer_id", ConnectionManager::instance()->clientId());
+		conn.putheader("port", static_cast<std::ostringstream*>( &(std::ostringstream() << 6881) )->str().c_str());
+		conn.putheader("compact", "1");
+		conn.putheader("uploaded", static_cast<std::ostringstream*>( &(std::ostringstream() << torrentDownloader->uploadedBytes()) )->str().c_str());
+
+		if (!firstSeeding) {
+			conn.putheader("downloaded", "0");
+			conn.putheader("left", "0");
+		} else {
+			conn.putheader("downloaded", static_cast<std::ostringstream*>( &(std::ostringstream() << torrentDownloader->downloadedBytes()) )->str().c_str());
+			int left;
+			if(metaInfo.totalSize() - torrentDownloader->downloadedBytes() > 0)
+				left = metaInfo.totalSize() - torrentDownloader->downloadedBytes();
+			else
+				left=0;
+			conn.putheader("left", static_cast<std::ostringstream*>( &(std::ostringstream() << (seeding ? 0 : left)) )->str().c_str());
+		}
+
+		if (seeding && firstSeeding) {
+			conn.putheader("event", "completed");
+			firstSeeding = false;
+		} else if (firstTrackerRequest) {
+			firstTrackerRequest = false;
+			conn.putheader("event", "started");
+		} else if(lastTrackerRequest) {
+			conn.putheader("event", "stopped");
+		}
+
+		if (!trackerId.length()==0)
+			conn.putheader("trackerid", trackerId.c_str());
+
+		conn.request( "GET", "/happyhttp/test.php", 0, 0,0 );
+		while( conn.outstanding() )
+			conn.pump();
+	}
+
+	catch( happyhttp::Wobbly& e )
+	{
+		fprintf(stderr, "Exception:\n%s\n", e.what() );
+	}
+
+#ifdef WIN32
+	WSACleanup();
+#endif // WIN32
 }
