@@ -36,7 +36,7 @@ protected:
 
 //	private slots:
 	void fetchPeerList();
-//	void httpRequestDone(QNetworkReply *reply);
+	void httpRequestDone(const happyhttp::Response* r, void* userData);
 //	void provideAuthentication(QNetworkReply *reply, QAuthenticator *auth);
 
 private:

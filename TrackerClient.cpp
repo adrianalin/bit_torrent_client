@@ -90,60 +90,15 @@ void TrackerClient::startSeeding() {
 }
 
 void TrackerClient::fetchPeerList() {
-	//	QUrl url(metaInfo.announceUrl());
-
-	// Base the query on announce url to include a passkey (if any)
-	//	QUrlQuery query(url);
+	happyhttp::Connection conn(torrentDownloader->metaInfo().announceUrl(), 80);
 
 	// Percent encode the hash
 	std::string infoHash = torrentDownloader->infoHash();
-	const char* infhash=torrentDownloader->infoHash().c_str();
-	std::string encodedSum;
-	const char* enc;
-	const char* result;
-	encodedSum = urlencode(infoHash);
-	enc = encodedSum.c_str();
-	result=encodedSum.c_str();
+	std::string encodedSum = urlencode(infoHash);
 
 	bool seeding = (torrentDownloader->state() == TorrentClient::Seeding);
+}
 
-	//	query.addQueryItem("info_hash", encodedSum);
-	//	query.addQueryItem("peer_id", ConnectionManager::instance()->clientId());
-	//	query.addQueryItem("port", QByteArray::number(TorrentServer::instance()->serverPort()));
-	//	query.addQueryItem("compact", "1");
-	//	query.addQueryItem("uploaded", QByteArray::number(torrentDownloader->uploadedBytes()));
-	//
-	//	if (!firstSeeding) {
-	//		query.addQueryItem("downloaded", "0");
-	//		query.addQueryItem("left", "0");
-	//	} else {
-	//		query.addQueryItem("downloaded",
-	//				QByteArray::number(torrentDownloader->downloadedBytes()));
-	//		int left = qMax<int>(0, metaInfo.totalSize() - torrentDownloader->downloadedBytes());
-	//		query.addQueryItem("left", QByteArray::number(seeding ? 0 : left));
-	//	}
-	//
-	//	if (seeding && firstSeeding) {
-	//		query.addQueryItem("event", "completed");
-	//		firstSeeding = false;
-	//	} else if (firstTrackerRequest) {
-	//		firstTrackerRequest = false;
-	//		query.addQueryItem("event", "started");
-	//	} else if(lastTrackerRequest) {
-	//		query.addQueryItem("event", "stopped");
-	//	}
-	//
-	//	if (!trackerId.isEmpty())
-	//		query.addQueryItem("trackerid", trackerId);
-	//
-	//	url.setQuery(query);
-	//
-	//	QNetworkRequest req(url);
-	//	if (!url.userName().isEmpty()) {
-	//		uname = url.userName();
-	//		pwd = url.password();
-	//		connect(&http, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
-	//				this, SLOT(provideAuthentication(QNetworkReply*,QAuthenticator*)));
-	//	}
-	//	http.get(req);
+void TrackerClient::httpRequestDone(const happyhttp::Response* r, void* userData) {
+	std::cout<<"COMPLETE m_BytesRead="<<r->m_BytesRead<<endl;
 }
