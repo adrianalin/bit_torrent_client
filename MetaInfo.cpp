@@ -73,7 +73,13 @@ std::list<std::string> MetaInfo::sha1Sums() const {
 }
 
 int MetaInfo::totalSize() const {
-	return totalSizeSingleFile;
+	if (fileForm() == SingleFileForm)
+		return singleFile().length;
+
+//	qint64 size = 0;
+//	foreach (MetaInfoMultiFile file, multiFiles())
+//	size += file.length;
+//	return size;
 }
 
 std::list<MetaInfoMultiFile> MetaInfo::multiFiles() const {

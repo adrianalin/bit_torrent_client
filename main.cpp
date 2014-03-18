@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 	TorrentClient client;
-    if(!client.setTorrent((char*)"debian-7.4.0-i386-CD-1.iso.torrent"))
+    if(!client.setTorrent((char*)"ubuntu-gnome-13.04-desktop-amd64.iso.torrent"))
     {
     	cout<<"file cannot be loaded!";
     	return 1;

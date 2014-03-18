@@ -9,7 +9,6 @@
 #define TRACKERCLIENT_H_
 
 #include "TorrentClient.h"
-#include "happyhttp.h"
 
 class TrackerClient {
 public:

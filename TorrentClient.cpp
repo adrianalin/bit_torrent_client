@@ -219,7 +219,7 @@ MetaInfo TorrentClient::metaInfo() const {
 }
 
 void TorrentClient::setDestinationFolder(const std::string& directory) {
-	d->destinationFolder=".";
+	d->destinationFolder=directory;
 }
 
 std::string TorrentClient::destinationFolder() const {
@@ -233,18 +233,23 @@ std::string TorrentClient::dumpedState() const {
 }
 
 long long TorrentClient::progress() const {
+	return d->lastProgressValue;
 }
 
 void TorrentClient::setDownloadedBytes(long long bytes) {
+	d->downloadedBytes=0;
 }
 
 long long TorrentClient::downloadedBytes() const {
+	return d->downloadedBytes;
 }
 
 void TorrentClient::setUploadedBytes(long long bytes) {
+	d->uploadedBytes = bytes;
 }
 
 long long TorrentClient::uploadedBytes() const {
+	return d->downloadedBytes;
 }
 
 int TorrentClient::connectedPeerCount() const {
@@ -254,6 +259,7 @@ int TorrentClient::seedCount() const {
 }
 
 std::string TorrentClient::peerId() const {
+	return d->peerId;
 }
 
 std::string TorrentClient::infoHash() const {
@@ -264,15 +270,19 @@ int TorrentClient::serverPort() const {
 }
 
 TorrentClient::State TorrentClient::state() const {
+	return d->state;
 }
 
 std::string TorrentClient::stateString() const {
+	return d->stateString;
 }
 
 TorrentClient::Error TorrentClient::error() const {
+	return d->error;
 }
 
 std::string TorrentClient::errorString() const {
+	return d->errorString;
 }
 
 void TorrentClient::fullVerificationDone() {

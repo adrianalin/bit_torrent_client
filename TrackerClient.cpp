@@ -6,13 +6,17 @@
  */
 
 #include "TrackerClient.h"
-#include "happyhttp.h"
+#include "ConnectionManager.h"
 
+#ifdef WIN32
 #include <ws2tcpip.h>
+#endif
 
 #include <cctype>
 #include <iomanip>
 #include <sstream>
+#include <string>
+#include <stdio.h>
 #include <string>
 
 std::string char2hex( char dec )
@@ -34,21 +38,25 @@ std::string urlencode(const std::string &c)
 {
 	std::string escaped="";
 	int max = c.length();
-	for(int i=0; i<max; i++)
+	int i=0;
+	for(i=0; i<max; i++)
 	{
-		if ( (48 <= c[i] && c[i] <= 57) ||//0-9
-				(65 <= c[i] && c[i] <= 90) ||//abc...xyz
-				(97 <= c[i] && c[i] <= 122) || //ABC...XYZ
-				(c[i]=='~' || c[i]=='!' || c[i]=='*' || c[i]=='(' || c[i]==')' || c[i]=='\'')
-		)
-		{
-			escaped.append( &c[i], 1);
-		}
-		else
-		{
-			escaped.append("%");
-			escaped.append( char2hex(c[i]) );//converts char 255 to string "ff"
-		}
+		escaped.append("%");
+		escaped.append(char2hex(c[i]));
+
+		//		if ( (48 <= c[i] && c[i] <= 57) ||//0-9
+		//				(65 <= c[i] && c[i] <= 90) ||//abc...xyz
+		//				(97 <= c[i] && c[i] <= 122) || //ABC...XYZ
+		//				(c[i]=='~' || c[i]=='!' || c[i]=='*' || c[i]=='(' || c[i]==')' || c[i]=='\'')
+		//		)
+		//		{
+		//			escaped.append( &c[i], 1);
+		//		}
+		//		else
+		//		{
+		//			escaped.append("%");
+		//			escaped.append( char2hex(c[i]) );//converts char 255 to string "ff"
+		//		}
 	}
 	return escaped;
 }
@@ -91,86 +99,83 @@ void TrackerClient::stop() {
 void TrackerClient::startSeeding() {
 }
 
-void httpRequestOnBegin(const happyhttp::Response* r, void* userdata) {
-	printf( "BEGIN (%d %s)\n", r->getstatus(), r->getreason() );
-}
-
-void httpRequestOnData(const happyhttp::Response* r, void* userdata, const unsigned char* data, int n) {
-	fwrite(data, 1, n, stdout);
-}
-
-void httpRequestOnDone(const happyhttp::Response* r, void* userData) {
-	std::cout<<"finished request"<<std::endl;
-}
-
 void TrackerClient::fetchPeerList() {
-#ifdef WIN32
-	WSAData wsaData;
-	int code = WSAStartup(MAKEWORD(1, 1), &wsaData);
-	if( code != 0 )
-	{
-		fprintf(stderr, "shite. %d\n",code);
-		return ;
-	}
-#endif //WIN32
 	// Percent encode the hash
 	std::string infoHash = torrentDownloader->infoHash();
 	std::string encodedSum = urlencode(infoHash);
 
 	bool seeding = (torrentDownloader->state() == TorrentClient::Seeding);
 
-	try
-	{
-		const char* headers[5];
-		happyhttp::Connection conn(torrentDownloader->metaInfo().announceUrl().c_str(), 80);
-		conn.setcallbacks(httpRequestOnBegin, httpRequestOnData, httpRequestOnDone, 0);
+	char* portNumber;
+	int len=metaInfo.announceUrl().length()-strlen("/announce")-strlen("http://");
+	std::string hostAndPort=metaInfo.announceUrl().substr(strlen("http://"), len).c_str();
+	portNumber=(char*)hostAndPort.substr(hostAndPort.find(":")+1, hostAndPort.length()-hostAndPort.find(":")).c_str();
+	std::string host=hostAndPort.substr(0, hostAndPort.find_first_of(":"));
 
-		headers[0]="info_hash";
-		headers[1]=encodedSum.c_str();
+	char uploadedBytes[100];
+	char downloadedBytes[100];
+	char leftBytes[100];
+	ConnectionManager cm(atoi(portNumber), host);
+	std::string requestString, responseString;
 
-		//		conn.putheader("info_hash", encodedSum.c_str());
-		//		conn.putheader("peer_id", ConnectionManager::instance()->clientId());
-		conn.putheader("port", static_cast<std::ostringstream*>( &(std::ostringstream() << 6881) )->str().c_str());
-		conn.putheader("compact", "1");
-		conn.putheader("uploaded", static_cast<std::ostringstream*>( &(std::ostringstream() << torrentDownloader->uploadedBytes()) )->str().c_str());
+	requestString.append("GET /announce?info_hash=");
+	requestString.append(encodedSum+"&");
+	requestString.append("peer_id=");
+	requestString.append("ABCDEFGHIJKLMNOPQRST&");
+	requestString.append("port=");
+	sprintf(portNumber, "%d", 6881);
+	requestString.append(portNumber);
+	requestString.append("&");
+	requestString.append("compact=1&");
+	requestString.append("uploaded=");
+	sprintf(uploadedBytes, "%d", torrentDownloader->uploadedBytes());
+	requestString.append(uploadedBytes);
+	requestString.append("&");
 
-		if (!firstSeeding) {
-			conn.putheader("downloaded", "0");
-			conn.putheader("left", "0");
-		} else {
-			conn.putheader("downloaded", static_cast<std::ostringstream*>( &(std::ostringstream() << torrentDownloader->downloadedBytes()) )->str().c_str());
-			int left;
-			if(metaInfo.totalSize() - torrentDownloader->downloadedBytes() > 0)
-				left = metaInfo.totalSize() - torrentDownloader->downloadedBytes();
-			else
-				left=0;
-			conn.putheader("left", static_cast<std::ostringstream*>( &(std::ostringstream() << (seeding ? 0 : left)) )->str().c_str());
-		}
+	if (!firstSeeding) {
+		requestString.append("downloaded=");
+		sprintf(downloadedBytes, "%d", 0);
+		requestString.append(downloadedBytes);
+		requestString.append("&");
+		requestString.append("left=");
+		sprintf(leftBytes, "%d", 0);
+		requestString.append(leftBytes);
+		requestString.append("&");
+	} else {
+		requestString.append("downloaded=");
+		sprintf(downloadedBytes, "%lld", torrentDownloader->downloadedBytes());
+		requestString.append(downloadedBytes);
+		requestString.append("&");
 
-		if (seeding && firstSeeding) {
-			conn.putheader("event", "completed");
-			firstSeeding = false;
-		} else if (firstTrackerRequest) {
-			firstTrackerRequest = false;
-			conn.putheader("event", "started");
-		} else if(lastTrackerRequest) {
-			conn.putheader("event", "stopped");
-		}
-
-		if (!trackerId.length()==0)
-			conn.putheader("trackerid", trackerId.c_str());
-
-		conn.request( "GET", "/happyhttp/test.php", 0, 0,0 );
-		while( conn.outstanding() )
-			conn.pump();
+		int left;
+		if(metaInfo.totalSize() - torrentDownloader->downloadedBytes() > 0)
+			left = metaInfo.totalSize() - torrentDownloader->downloadedBytes();
+		else
+			left=0;
+		requestString.append("left=");
+		sprintf(leftBytes, "%d", (seeding ? 0 : left));
+		requestString.append(leftBytes);
+		requestString.append("&");
 	}
 
-	catch( happyhttp::Wobbly& e )
-	{
-		fprintf(stderr, "Exception:\n%s\n", e.what() );
+	if (seeding && firstSeeding) {
+		requestString.append("event=completed");
+		firstSeeding = false;
+	} else if (firstTrackerRequest) {
+		requestString.append("event=started");
+		firstTrackerRequest = false;
+	} else if(lastTrackerRequest) {
+		requestString.append("event=stopped");
 	}
 
-#ifdef WIN32
-	WSACleanup();
-#endif // WIN32
+	if (!trackerId.length()==0)
+	{
+		requestString.append("trackerid=");
+		requestString.append(trackerId);
+	}
+	requestString.append(" HTTP/1.1\r\n");
+	requestString.append("\r\n");
+	std::cout<<"\n\n--HTTP request string--\n"<<requestString;
+
+	responseString=cm.HTTPRequest(requestString);
 }
